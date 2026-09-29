@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Bhasad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap">
+
+<style>
+/* ═══════════ RESET & TOKENS ═══════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+:root {
+  --bg: #04040C;
+  --bg2: #080814;
+  --glass: rgba(8,8,20,0.72);
+  --card: #0B0B1A;
+  --card-hv: #0F0F22;
+  --fg: #EDEAF9;
+  --fg2: #7872A0;
+  --fg3: #302C52;
+  --border: rgba(255,255,255,0.055);
+  --border-hv: rgba(255,255,255,0.12);
+  --accent: #7C6EFF;
+  --accent2: #EC4899;
+  color-scheme: dark;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: 'DM Sans', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  cursor: none;
+}
+
+/* ═══════════ CUSTOM CURSOR ═══════════ */
+#cursor {
+  position: fixed; width: 12px; height: 12px;
+  border-radius: 50%; background: var(--accent);
+  pointer-events: none; z-index: 9999;
+  transform: translate(-50%,-50%);
+  transition: transform .1s, width .2s, height .2s, opacity .2s;
+  mix-blend-mode: screen;
+}
+#cursor-ring {
+  position: fixed; width: 40px; height: 40px;
+  border-radius: 50%; border: 1.5px solid rgba(124,110,255,0.5);
+  pointer-events: none; z-index: 9998;
+  transform: translate(-50%,-50%);
+  transition: transform .08s, width .2s, height .2s, border-color .2s;
+}
+body:has(a:hover) #cursor, body:has(.venture-card:hover) #cursor { width: 6px; height: 6px; }
+body:has(a:hover) #cursor-ring, body:has(.venture-card:hover) #cursor-ring { width: 60px; height: 60px; border-color: rgba(124,110,255,0.8); }
+
+/* ═══════════ LOADER ═══════════ */
+#loader {
+  position: fixed; inset: 0; z-index: 10000;
+  background: #04040C;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 32px;
+}
+#loader-word {
+  display: flex; gap: 4px;
+  font-family: 'Syne', sans-serif; font-weight: 800;
+  font-size: clamp(60px, 12vw, 140px);
+  letter-spacing: -0.04em;
+}
+.loader-letter {
+  display: inline-block;
+  opacity: 0; transform: translateY(40px) scale(0.8);
+  transition: opacity .5s cubic-bezier(.16,1,.3,1), transform .5s cubic-bezier(.16,1,.3,1);
+}
+.loader-letter.show { opacity: 1; transform: translateY(0) scale(1); }
+.loader-letter:nth-child(1){color:#FF6B9D}
+.loader-letter:nth-child(2){color:#FFA640}
+.loader-letter:nth-child(3){color:#FFD966}
+.loader-letter:nth-child(4){color:#6DFF9A}
+.loader-letter:nth-child(5){color:#60B8FF}
+.loader-letter:nth-child(6){color:#C084FF}
+#loader-bar-wrap {
+  width: 220px; height: 2px;
+  background: rgba(255,255,255,0.07); border-radius: 2px; overflow: hidden;
+}
+#loader-bar {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, #7C6EFF, #EC4899);
+  border-radius: 2px;
+  transition: width .6s cubic-bezier(.25,.46,.45,.94);
+}
+#loader.hide {
+  opacity: 0; pointer-events: none;
+  transition: opacity .6s ease .3s;
+}
+
+/* ═══════════ PARTICLE CANVAS ═══════════ */
+#particle-canvas {
+  position: fixed; inset: 0; z-index: 0;
+  pointer-events: none;
+  opacity: 0.55;
+}
+
+/* ═══════════ NAV ═══════════ */
+.nav-wrap {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--glass);
+  backdrop-filter: blur(24px) saturate(1.6);
+  -webkit-backdrop-filter: blur(24px) saturate(1.6);
+  border-bottom: 1px solid var(--border);
+}
+nav {
+  max-width: 1300px; margin-inline: auto;
+  padding: 18px 32px;
+  display: flex; justify-content: space-between; align-items: center;
+  position: relative; z-index: 1;
+}
+.nav-logo {
+  font-family: 'Syne', sans-serif; font-weight: 800;
+  font-size: 1.25rem; letter-spacing: -0.03em;
+  color: var(--fg); text-decoration: none;
+  display: flex; align-items: center; gap: 10px;
+}
+.logo-letters span {
+  display: inline-block;
+  transition: color .2s, transform .2s;
+}
+.nav-logo:hover .logo-letters span { transform: translateY(-2px); }
+.logo-letters .ll1{color:#FF6B9D}
+.logo-letters .ll2{color:#FFA640}
+.logo-letters .ll3{color:#FFD966}
+.logo-letters .ll4{color:#6DFF9A}
+.logo-letters .ll5{color:#60B8FF}
+.logo-letters .ll6{color:#C084FF}
+.nav-pill {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent);
+  animation: blink 2s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:1}50%{opacity:.35} }
+.nav-links { display: flex; align-items: center; gap: 24px; }
+.nav-link {
+  font-size: 0.78rem; font-weight: 500;
+  color: var(--fg2); text-decoration: none;
+  letter-spacing: 0.04em;
+  transition: color .2s;
+}
+.nav-link:hover { color: var(--fg); }
+.nav-btn {
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em;
+  padding: 9px 20px; border-radius: 100px;
+  background: linear-gradient(135deg, rgba(124,110,255,0.2), rgba(236,72,153,0.15));
+  border: 1px solid rgba(124,110,255,0.35);
+  color: #A89FFF; cursor: pointer; text-decoration: none;
+  transition: all .25s;
+}
+.nav-btn:hover {
+  background: linear-gradient(135deg, rgba(124,110,255,0.35), rgba(236,72,153,0.25));
+  border-color: rgba(124,110,255,0.6);
+  color: #fff;
+  box-shadow: 0 0 20px rgba(124,110,255,0.3);
+}
+
+/* ═══════════ HERO ═══════════ */
+.hero-section {
+  position: relative; z-index: 1;
+  padding: 0 32px;
+  min-height: 92vh;
+  display: flex; align-items: center;
+}
+.hero-inner {
+  max-width: 1300px; margin-inline: auto;
+  width: 100%;
+  padding-block: 60px;
+}
+.hero-eyebrow {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-size: 0.68rem; font-weight: 700;
+  letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--fg3); margin-bottom: 28px;
+  opacity: 0; transform: translateY(10px);
+  animation: fadeUp .7s .8s forwards;
+}
+.eyebrow-dash { width: 28px; height: 1px; background: var(--fg3); }
+
+.hero-wordmark {
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.hero-title-line {
+  display: flex;
+  gap: 0.01em;
+}
+.hero-char {
+  font-family: 'Syne', sans-serif; font-weight: 800;
+  font-size: clamp(80px, 16vw, 220px);
+  line-height: 0.84; letter-spacing: -0.045em;
+  display: inline-block;
+  opacity: 0; transform: translateY(80px);
+  animation: charSlide .8s cubic-bezier(.16,1,.3,1) forwards;
+}
+.hero-char:nth-child(1){color:#FF6B9D;animation-delay:.85s}
+.hero-char:nth-child(2){color:#FFA640;animation-delay:.93s}
+.hero-char:nth-child(3){color:#FFD966;animation-delay:1.01s}
+.hero-char:nth-child(4){color:#6DFF9A;animation-delay:1.09s}
+.hero-char:nth-child(5){color:#60B8FF;animation-delay:1.17s}
+.hero-char:nth-child(6){color:#C084FF;animation-delay:1.25s}
+@keyframes charSlide { to { opacity:1; transform:translateY(0) } }
+@keyframes fadeUp { to { opacity:1; transform:translateY(0) } }
+
+.hero-sub-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 60px;
+  align-items: end;
+  margin-top: 36px;
+  opacity: 0; animation: fadeUp .7s 1.4s forwards;
+}
+.hero-tagline {
+  font-size: clamp(.95rem, 1.2vw, 1.15rem);
+  color: var(--fg2); line-height: 1.7;
+  max-width: 440px;
+}
+.hero-tagline strong { color: var(--fg); font-weight: 500; }
+
+/* Stat block */
+.stat-block {
+  display: grid; grid-template-columns: repeat(3,1fr);
+  gap: 0;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px; overflow: hidden;
+  flex-shrink: 0;
+}
+.stat-cell {
+  padding: 22px 26px;
+  border-right: 1px solid var(--border);
+  text-align: center;
+}
+.stat-cell:last-child { border-right: none; }
+.stat-n {
+  font-family: 'Syne', sans-serif; font-weight: 800;
+  font-size: 2.4rem; letter-spacing: -0.05em;
+  line-height: 1; color: var(--fg);
+  font-variant-numeric: tabular-nums;
+}
+.stat-l {
+  font-size: 0.62rem; font-weight: 700;
+  letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--fg3); margin-top: 6px;
+}
+
+/* Scroll hint */
+.scroll-hint {
+  position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  opacity: 0; animation: fadeUp .5s 2s forwards;
+  z-index: 1;
+}
+.scroll-hint-text {
+  font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--fg3);
+}
+.scroll-arrow {
+  width: 1px; height: 40px;
+  background: linear-gradient(to bottom, var(--fg3), transparent);
+  animation: scrollPulse 1.8s ease-in-out infinite;
+}
+@keyframes scrollPulse {
+  0%,100% { transform: scaleY(1); opacity: 1; }
+  50% { transform: scaleY(.5); opacity: .4; }
+}
+
+/* ═══════════ SECTION LAYOUT ═══════════ */
+.sec { position: relative; z-index: 1; padding: 0 32px; }
+.sec-inner { max-width: 1300px; margin-inline: auto; padding-block: 72px; }
+.divider { height: 1px; background: var(--border); margin-inline: 32px; position: relative; z-index: 1; }
+.gradient-divider {
+  height: 1px; margin-inline: 32px; position: relative; z-index: 1;
+  background: linear-gradient(90deg,
+    transparent 0%, rgba(124,110,255,.5) 25%,
+    rgba(236,72,153,.5) 75%, transparent 100%);
+}
+
+.sec-hd {
+  display: flex; align-items: center; gap: 16px;
+  margin-bottom: 48px;
+}
+.sec-label {
+  font-family: 'Syne', sans-serif; font-weight: 700;
+  font-size: 0.65rem; letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--fg3); white-space: nowrap;
+}
+.sec-rule { flex: 1; height: 1px; background: var(--border); }
+.sec-count { font-size: 0.65rem; color: var(--fg3); letter-spacing: 0.1em; }
+
+/* ═══════════ VENTURE GRID ═══════════ */
+.ventures-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.venture-card {
+  --vc: #888;
+  --tiltX: 0deg; --tiltY: 0deg;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px 26px 22px;
+  display: flex; flex-direction: column; gap: 10px;
+  position: relative; overflow: hidden;
+  cursor: pointer;
+  transform-style: preserve-3d;
+  transform: perspective(800px) rotateX(0deg) rotateY(0deg) translateZ(0);
+  transition: transform .15s ease, box-shadow .25s, border-color .25s, background .25s;
+  /* scroll-reveal */
+  opacity: 0; translate: 0 28px;
+}
+.venture-card.revealed {
+  opacity: 1; translate: 0 0;
+  transition:
+    opacity .6s cubic-bezier(.16,1,.3,1),
+    translate .6s cubic-bezier(.16,1,.3,1),
+    transform .15s ease,
+    box-shadow .25s,
+    border-color .25s,
+    background .25s;
+}
+
+/* glow beam */
+.venture-card::after {
+  content: '';
+  position: absolute; inset: 0; border-radius: 16px;
+  background: radial-gradient(ellipse at 50% -20%, color-mix(in srgb, var(--vc) 18%, transparent) 0%, transparent 55%);
+  opacity: 0; transition: opacity .3s;
+  pointer-events: none;
+}
+.venture-card:hover::after { opacity: 1; }
+
+/* top accent line */
+.venture-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: var(--vc);
+  transform: scaleX(0.2); transform-origin: left;
+  transition: transform .4s cubic-bezier(.16,1,.3,1);
+}
+.venture-card:hover::before { transform: scaleX(1); }
+
+.venture-card:hover {
+  background: var(--card-hv);
+  border-color: color-mix(in srgb, var(--vc) 40%, transparent);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--vc) 25%, transparent),
+    0 20px 60px -10px color-mix(in srgb, var(--vc) 22%, transparent),
+    0 8px 24px -8px rgba(0,0,0,.6);
+}
+
+.vc-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; z-index: 1; position: relative; }
+.vc-icon {
+  width: 46px; height: 46px; border-radius: 12px; font-size: 21px;
+  display: flex; align-items: center; justify-content: center;
+  background: color-mix(in srgb, var(--vc) 13%, var(--card));
+  border: 1px solid color-mix(in srgb, var(--vc) 22%, transparent);
+  flex-shrink: 0;
+}
+.vc-badge {
+  font-size: 0.58rem; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; padding: 3px 8px; border-radius: 5px;
+  flex-shrink: 0; margin-top: 4px;
+}
+.bl { background: rgba(34,197,94,.1); color:#4ADE80; border: 1px solid rgba(34,197,94,.18); }
+.bb { background: rgba(251,191,36,.1); color:#FBB724; border: 1px solid rgba(251,191,36,.18); }
+.bx { background: rgba(139,92,246,.1); color:#A78BFA; border: 1px solid rgba(139,92,246,.18); }
+
+.vc-cat { font-size: 0.61rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--vc); z-index:1;position:relative; }
+.vc-name {
+  font-family: 'Syne', sans-serif; font-weight: 700;
+  font-size: 1.05rem; letter-spacing: -0.02em;
+  color: var(--fg); line-height: 1.2; text-wrap: balance;
+  z-index:1;position:relative;
+}
+.vc-desc { font-size: 0.8rem; color: var(--fg2); line-height: 1.65; flex: 1; z-index:1;position:relative; }
+.vc-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 8px; margin-top: 6px; z-index:1;position:relative;
+}
+.vc-tags { display: flex; gap: 5px; flex-wrap: wrap; }
+.vc-tag {
+  font-size: 0.59rem; font-weight: 600; letter-spacing: 0.04em;
+  padding: 3px 7px; border-radius: 4px;
+  background: var(--border); color: var(--fg3);
+  border: 1px solid transparent;
+  transition: border-color .2s, color .2s;
+}
+.venture-card:hover .vc-tag { border-color: color-mix(in srgb, var(--vc) 22%, transparent); color: var(--fg2); }
+.vc-arrow {
+  width: 30px; height: 30px; border-radius: 50%;
+  border: 1px solid var(--border-hv);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--vc); font-size: 13px; flex-shrink: 0;
+  transition: background .25s, transform .2s;
+}
+.venture-card:hover .vc-arrow {
+  background: color-mix(in srgb, var(--vc) 18%, transparent);
+  transform: translateX(3px);
+}
+
+/* ═══════════ ABOUT ═══════════ */
+.about-layout {
+  display: grid; grid-template-columns: 360px 1fr;
+  gap: 80px; align-items: start;
+}
+.founder-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px; padding: 36px;
+  position: relative; overflow: hidden;
+}
+.fc-glow {
+  position: absolute; top: -80px; left: -80px;
+  width: 320px; height: 320px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(124,110,255,.14) 0%, transparent 65%);
+  filter: blur(40px); pointer-events: none;
+}
+.fc-avatar {
+  width: 60px; height: 60px; border-radius: 14px;
+  background: linear-gradient(135deg, #7C6EFF 0%, #EC4899 100%);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Syne', sans-serif; font-weight: 800;
+  font-size: 1.4rem; color: #fff;
+  margin-bottom: 20px; position: relative; z-index: 1;
+}
+.fc-name {
+  font-family: 'Syne', sans-serif; font-weight: 800;
+  font-size: 1.55rem; letter-spacing: -0.04em;
+  line-height: 1.1; color: var(--fg); margin-bottom: 4px;
+  position: relative; z-index: 1;
+}
+.fc-role {
+  font-size: 0.68rem; font-weight: 700; letter-spacing: 0.16em;
+  text-transform: uppercase; color: var(--fg3);
+  margin-bottom: 24px; position: relative; z-index: 1;
+}
+.fc-divider { height: 1px; background: var(--border); margin-bottom: 24px; }
+.fc-rows { display: flex; flex-direction: column; gap: 14px; position: relative; z-index: 1; }
+.fc-row { display: flex; gap: 12px; align-items: flex-start; }
+.fc-icon {
+  width: 28px; height: 28px; border-radius: 7px;
+  background: var(--border); font-size: 13px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.fc-key { font-size: 0.63rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg3); }
+.fc-val { font-size: 0.8rem; color: var(--fg2); }
+.fc-val a { color: var(--accent); text-decoration: none; }
+.fc-val a:hover { text-decoration: underline; }
+
+.about-body {}
+.about-hl {
+  font-family: 'Syne', sans-serif; font-weight: 800;
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  letter-spacing: -0.04em; line-height: 1;
+  color: var(--fg); text-wrap: balance; margin-bottom: 28px;
+}
+.about-hl em {
+  font-style: normal;
+  background: linear-gradient(90deg, #7C6EFF, #EC4899 60%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.about-text { color: var(--fg2); line-height: 1.8; font-size: 0.88rem; }
+.about-text p + p { margin-top: 14px; }
+.chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 28px; }
+.chip {
+  font-size: 0.68rem; font-weight: 600; padding: 6px 14px;
+  border: 1px solid var(--border-hv); border-radius: 100px;
+  color: var(--fg2); display: flex; align-items: center; gap: 5px;
+}
+.chip-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
+
+/* ═══════════ DOMAIN ALERT BANNER ═══════════ */
+.alert-banner {
+  background: rgba(239,68,68,0.1);
+  border: 1px solid rgba(239,68,68,0.3);
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex; gap: 14px; align-items: flex-start;
+  margin-bottom: 60px;
+  position: relative; z-index: 1;
+  max-width: 1300px; margin-inline: auto;
+}
+.alert-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+.alert-text { font-size: 0.82rem; color: rgba(239,68,68,0.9); line-height: 1.6; }
+.alert-text strong { color: #FF6B6B; }
+
+/* ═══════════ DEPLOY GUIDE ═══════════ */
+.deploy-grid {
+  display: grid; grid-template-columns: repeat(2,1fr); gap: 14px;
+}
+.deploy-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 14px; padding: 24px;
+  opacity: 0; translate: 0 20px;
+  transition: opacity .5s, translate .5s;
+}
+.deploy-card.revealed { opacity: 1; translate: 0 0; }
+.deploy-num {
+  font-family: 'Syne', sans-serif; font-weight: 800;
+  font-size: 2.5rem; letter-spacing: -0.05em;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1; margin-bottom: 8px;
+}
+.deploy-title {
+  font-family: 'Syne', sans-serif; font-weight: 700;
+  font-size: .95rem; letter-spacing: -0.02em;
+  color: var(--fg); margin-bottom: 6px;
+}
+.deploy-body { font-size: 0.78rem; color: var(--fg2); line-height: 1.65; }
+.code-block {
+  background: rgba(0,0,0,.4);
+  border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px 14px;
+  font-family: 'Courier New', monospace; font-size: 0.72rem;
+  color: #A78BFA; margin-top: 10px; white-space: pre;
+  overflow-x: auto;
+}
+
+/* ═══════════ FOOTER ═══════════ */
+footer {
+  max-width: 1300px; margin-inline: auto;
+  padding: 28px 32px;
+  display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap; gap: 12px;
+  position: relative; z-index: 1;
+}
+.footer-brand {
+  font-family: 'Syne', sans-serif; font-weight: 800;
+  font-size: .95rem; letter-spacing: -0.02em; color: var(--fg);
+  display: flex; align-items: center; gap: 10px;
+}
+.footer-info { font-size: .7rem; color: var(--fg3); }
+.footer-contact { font-size: .7rem; color: var(--fg2); }
+.footer-contact a { color: var(--accent); text-decoration: none; }
+.footer-contact a:hover { text-decoration: underline; }
+
+/* ═══════════ RESPONSIVE ═══════════ */
+@media (max-width: 1024px) {
+  .about-layout { grid-template-columns: 1fr; gap: 40px; }
+  .founder-card { max-width: 380px; }
+}
+@media (max-width: 900px) {
+  .ventures-grid { grid-template-columns: repeat(2,1fr); }
+  .hero-sub-row { grid-template-columns: 1fr; gap: 28px; }
+  .deploy-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  .sec, .hero-section, .nav-wrap, .divider, .gradient-divider { padding-inline: 18px; }
+  nav { padding-inline: 18px; }
+  .ventures-grid { grid-template-columns: 1fr; gap: 10px; }
+  .stat-block { grid-template-columns: repeat(3,1fr); }
+  .nav-link { display: none; }
+  footer { flex-direction: column; gap: 8px; text-align: center; }
+  #cursor, #cursor-ring { display: none; }
+  body { cursor: auto; }
+  .founder-card { max-width: 100%; }
+}
+</style>
+
+<!-- CURSOR -->
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- LOADER -->
+<div id="loader">
+  <div id="loader-word">
+    <span class="loader-letter">B</span>
+    <span class="loader-letter">H</span>
+    <span class="loader-letter">A</span>
+    <span class="loader-letter">S</span>
+    <span class="loader-letter">A</span>
+    <span class="loader-letter">D</span>
+  </div>
+  <div id="loader-bar-wrap"><div id="loader-bar"></div></div>
+</div>
+
+<!-- PARTICLE CANVAS -->
+<canvas id="particle-canvas"></canvas>
+
+<!-- NAV -->
+<div class="nav-wrap">
+  <nav>
+    <a class="nav-logo" href="#top">
+      <span class="logo-letters">
+        <span class="ll1">B</span><span class="ll2">H</span><span class="ll3">A</span><span class="ll4">S</span><span class="ll5">A</span><span class="ll6">D</span>
+      </span>
+      <span class="nav-pill"></span>
+    </a>
+    <div class="nav-links">
+      <a class="nav-link" href="#ventures">Ventures</a>
+      <a class="nav-link" href="#about">Founder</a>
+      <a class="nav-link" href="#deploy">Deploy</a>
+      <a class="nav-btn" href="mailto:ceo@bhasad.org">Let's Talk →</a>
+    </div>
+  </nav>
+</div>
+
+<!-- HERO -->
+<section class="hero-section" id="top">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">
+      <span class="eyebrow-dash"></span>
+      Himanshu Sharma · One org. Infinite worlds.
+    </div>
+    <div class="hero-wordmark">
+      <div class="hero-title-line" aria-label="BHASAD">
+        <span class="hero-char">B</span>
+        <span class="hero-char">H</span>
+        <span class="hero-char">A</span>
+        <span class="hero-char">S</span>
+        <span class="hero-char">A</span>
+        <span class="hero-char">D</span>
+      </div>
+    </div>
+    <div class="hero-sub-row">
+      <p class="hero-tagline">
+        <strong>SaaS · AI · Security · FinTech · Media · Automation.</strong><br>
+        12 ventures. 11 years of craft. Built from Delhi to scale globally — with obsession, not permission.
+      </p>
+      <div class="stat-block">
+        <div class="stat-cell">
+          <div class="stat-n" data-target="12">0</div>
+          <div class="stat-l">Ventures</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-n" data-target="11" data-suffix="+">0</div>
+          <div class="stat-l">Yrs Exp</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-n" data-target="6">0</div>
+          <div class="stat-l">Domains</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="scroll-hint">
+    <span class="scroll-hint-text">Scroll</span>
+    <div class="scroll-arrow"></div>
+  </div>
+</section>
+
+<div class="gradient-divider"></div>
+
+<!-- VENTURES -->
+<section class="sec" id="ventures">
+  <div class="sec-inner">
+    <div class="sec-hd">
+      <span class="sec-label">All Ventures</span>
+      <div class="sec-rule"></div>
+      <span class="sec-count">12 Projects</span>
+    </div>
+
+    <div class="ventures-grid">
+
+      <div class="venture-card" style="--vc:#3B82F6" data-col="0">
+        <div class="vc-top">
+          <div class="vc-icon">📊</div>
+          <span class="vc-badge bl">Live</span>
+        </div>
+        <div class="vc-cat">B2B SaaS</div>
+        <div class="vc-name">The KPI Hub</div>
+        <div class="vc-desc">Benchmarking intelligence platform for B2B SaaS. Real-time KPI tracking, peer comparisons, growth analytics — built to scale without apology.</div>
+        <div class="vc-footer">
+          <div class="vc-tags"><span class="vc-tag">Next.js</span><span class="vc-tag">Supabase</span><span class="vc-tag">Prisma</span></div>
+          <div class="vc-arrow">→</div>
+        </div>
+      </div>
+
+      <div class="venture-card" style="--vc:#A855F7" data-col="1">
+        <div class="vc-top">
+          <div class="vc-icon">✨</div>
+          <span class="vc-badge bl">Live</span>
+        </div>
+        <div class="vc-cat">Mobile App</div>
+        <div class="vc-name">Lumina Numerology</div>
+        <div class="vc-desc">Flagship offline numerology app. Spiritual insights, life-path readings — zero cloud dependency, full privacy, fully self-contained.</div>
+        <div class="vc-footer">
+          <div class="vc-tags"><span class="vc-tag">Android</span><span class="vc-tag">Offline-First</span></div>
+          <div class="vc-arrow">→</div>
+        </div>
+      </div>
+
+      <div class="venture-card" style="--vc:#EF4444" data-col="2">
+        <div class="vc-top">
+          <div class="vc-icon">🔒</div>
+          <span class="vc-badge bb">Building</span>
+        </div>
+        <div class="vc-cat">Android Security</div>
+        <div class="vc-name">WTMP Enterprise</div>
+        <div class="vc-desc">9-agent zero-gap device monitoring for enterprise Android. Elevated from consumer app into a full autonomic security compliance framework.</div>
+        <div class="vc-footer">
+          <div class="vc-tags"><span class="vc-tag">Android</span><span class="vc-tag">SOC2</span><span class="vc-tag">GDPR</span></div>
+          <div class="vc-arrow">→</div>
+        </div>
+      </div>
+
+      <div class="venture-card" style="--vc:#14B8A6" data-col="0">
+        <div class="vc-top">
+          <div class="vc-icon">🎯</div>
+          <span class="vc-badge bb">Building</span>
+        </div>
+        <div class="vc-cat">HR-Tech · AI</div>
+        <div class="vc-name">HirePilot AI</div>
+        <div class="vc-desc">AI-powered hiring for structured, bias-resistant recruiting. Automates candidate scoring, interview tracking, and offer workflows end-to-end.</div>
+        <div class="vc-footer">
+          <div class="vc-tags"><span class="vc-tag">Next.js</span><span class="vc-tag">OpenAI</span><span class="vc-tag">Supabase</span></div>
+          <div class="vc-arrow">→</div>
+        </div>
+      </div>
+
+      <div class="venture-card" style="--vc:#F97316" data-col="1">
+        <div class="vc-top">
+          <div class="vc-icon">🧘</div>
+          <span class="vc-badge bl">Live</span>
+        </div>
+        <div class="vc-cat">Career Tech</div>
+        <div class="vc-name">Karmic Job Cracker</div>
+        <div class="vc-desc">Android app for interview prep, career clarity, and resume intelligence. Built for the Indian job market with integrity at its core.</div>
+        <div class="vc-footer">
+          <div class="vc-tags"><span class="vc-tag">Android</span><span class="vc-tag">Kotlin</span></div>
+          <div class="vc-arrow">→</div>
+        </div>
+      </div>
+
+      <div class="venture-card" style="--vc:#EC4899" data-col="2">
+        <div class="vc-top">
+          <div class="vc-icon">🎬</div>
+          <span class="vc-badge bb">Building</span>
+        </div>
+        <div class="vc-cat">Animated IP · Creator</div>
+        <div class="vc-name">Ashverse Ki Duniya</div>
+        <div class="vc-desc">Original animated universe on Indian stories and original characters. AI-assisted production pipeline for solo creator scale on YouTube.</div>
+        <div class="vc-footer">
+          <div class="vc-tags"><span class="vc-tag">Gemini</span><span class="vc-tag">YouTube</span><span class="vc-tag">AI Pipeline</span></div>
+          <div class="vc-arrow">→</div>
+        </div>
+      </div>
+
+      <div class="venture-card" style="--vc:#10B981" data-col="0">
+        <div class="vc-top">
+          <div class="vc-icon">📈</div>
+          <span class="vc-badge bb">Building</span>
+        </div>
+        <div class="vc-cat">FinTech · Algo Trading</div>
+        <div class="vc-name">TradeCIO</div>
+        <div class="vc-desc">Algorithmic trading intelligence with CIO-grade portfolio views. Strategy backtesting, live signal tracking, risk-weighted dashboards.</div>
+        <div class="vc-footer">
+          <div class="vc-tags"><span class="vc-tag">Next.js</span><span class="vc-tag">Python</span><span class="vc-tag">Vercel</span></div>
+          <div class="vc-arrow">→</div>
+        </div>
+      </div>
+
+      <div class="venture-card" style="--vc:#06B6D4" data-col="1">
+        <div class="vc-top">
+          <div class="vc-icon">⚡</div>
+          <span class="vc-badge bl">Live</span>
+        </div>
+        <div class="vc-cat">ML Infra · Media</div>
+        <div class="vc-name">AI-ForgeStream</div>
+        <div class="vc-desc">Kubernetes-native media transcoding with ML-driven quality optimization. CI/CD-first pipeline for broadcast-grade video at cloud scale.</div>
+        <div class="vc-footer">
+          <div class="vc-tags"><span class="vc-tag">Kubernetes</span><span class="vc-tag">Python</span><span class="vc-tag">GitHub Actions</span></div>
+          <div class="vc-arrow">→</div>
+        </div>
+      </div>
+
+      <div class="venture-card" style="--vc:#EAB308" data-col="2">
+        <div class="vc-top">
+          <div class="vc-icon">🤖</div>
+          <span class="vc-badge bl">Live</span>
+        </div>
+        <div class="vc-cat">Automation · DevOps</div>
+        <div class="vc-name">Automated Website Builder</div>
+        <div class="vc-desc">AMSDV pipeline for multi-site deployment and version management. PM2 runtime with Telegram bot integration for zero-touch deploys.</div>
+        <div class="vc-footer">
+          <div class="vc-tags"><span class="vc-tag">Node.js</span><span class="vc-tag">PM2</span><span class="vc-tag">Telegram</span></div>
+          <div class="vc-arrow">→</div>
+        </div>
+      </div>
+
+      <div class="venture-card" style="--vc:#6366F1" data-col="0">
+        <div class="vc-top">
+          <div class="vc-icon">🎙️</div>
+          <span class="vc-badge bl">Live</span>
+        </div>
+        <div class="vc-cat">Voice AI · Broadcast</div>
+        <div class="vc-name">AetherAI</div>
+        <div class="vc-desc">Voice-driven RAG answering machine for NHL broadcast support ops. SharePoint knowledge base + real-time voice query for live event operations.</div>
+        <div class="vc-footer">
+          <div class="vc-tags"><span class="vc-tag">RAG</span><span class="vc-tag">SharePoint</span><span class="vc-tag">Python</span></div>
+          <div class="vc-arrow">→</div>
+        </div>
+      </div>
+
+      <div class="venture-card" style="--vc:#F43F5E" data-col="1">
+        <div class="vc-top">
+          <div class="vc-icon">⚙️</div>
+          <span class="vc-badge bx">Beta</span>
+        </div>
+        <div class="vc-cat">Core Infrastructure</div>
+        <div class="vc-name">Bhasad Automation</div>
+        <div class="vc-desc">The internal engine powering cross-venture deployments, webhook routing, and pipeline orchestration. The plumbing that keeps everything running.</div>
+        <div class="vc-footer">
+          <div class="vc-tags"><span class="vc-tag">Node.js</span><span class="vc-tag">Webhooks</span><span class="vc-tag">Pipelines</span></div>
+          <div class="vc-arrow">→</div>
+        </div>
+      </div>
+
+      <div class="venture-card" style="--vc:#22C55E" data-col="2">
+        <div class="vc-top">
+          <div class="vc-icon">🛡️</div>
+          <span class="vc-badge bb">Building</span>
+        </div>
+        <div class="vc-cat">App Security</div>
+        <div class="vc-name">Spector Guard</div>
+        <div class="vc-desc">App-level security monitoring and guard framework. Runtime threat detection and compliance scanning for mobile and web applications.</div>
+        <div class="vc-footer">
+          <div class="vc-tags"><span class="vc-tag">Android</span><span class="vc-tag">Security</span></div>
+          <div class="vc-arrow">→</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ABOUT -->
+<section class="sec" id="about">
+  <div class="sec-inner">
+    <div class="sec-hd">
+      <span class="sec-label">The Founder</span>
+      <div class="sec-rule"></div>
+    </div>
+    <div class="about-layout">
+      <div class="founder-card">
+        <div class="fc-glow"></div>
+        <div class="fc-avatar">HS</div>
+        <div class="fc-name">Himanshu<br>Sharma</div>
+        <div class="fc-role">Founder · CEO · Lead Engineer</div>
+        <div class="fc-divider"></div>
+        <div class="fc-rows">
+          <div class="fc-row">
+            <div class="fc-icon">📍</div>
+            <div><div class="fc-key">Location</div><div class="fc-val">Delhi · Noida, India</div></div>
+          </div>
+          <div class="fc-row">
+            <div class="fc-icon">✉️</div>
+            <div><div class="fc-key">Email</div><div class="fc-val"><a href="mailto:ceo@bhasad.org">ceo@bhasad.org</a></div></div>
+          </div>
+          <div class="fc-row">
+            <div class="fc-icon">💼</div>
+            <div><div class="fc-key">Day Role</div><div class="fc-val">Lead Technical Specialist, GXI · NHL Broadcast via Presidio</div></div>
+          </div>
+          <div class="fc-row">
+            <div class="fc-icon">🎓</div>
+            <div><div class="fc-key">Education</div><div class="fc-val">BCA, Shobhit University · IT Diploma, BTE Delhi</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="about-body">
+        <div class="about-hl">Builder by nature.<br><em>Unstoppable</em> by choice.</div>
+        <div class="about-text">
+          <p>11+ years spanning network infrastructure, cloud systems, satellite communications, and AI/ML engineering. Currently Lead Technical Specialist at GlobalXperts (GXI), supporting NHL broadcast operations live via Presidio.</p>
+          <p>Founder and CEO of The KPI Hub — a B2B SaaS platform building the data layer for SaaS benchmarking at scale. Every other venture under Bhasad is a parallel obsession: product ideas that refused to stay ideas, shipped by one person, from one city, to a global audience.</p>
+          <p>Not chasing trends. Building systems that last — real-time, low-latency, observable, and maintainable. The kind of compounding work that eventually becomes undeniable.</p>
+        </div>
+        <div class="chips">
+          <span class="chip"><span class="chip-dot"></span>CCNA Certified</span>
+          <span class="chip"><span class="chip-dot"></span>CCNP Certified</span>
+          <span class="chip"><span class="chip-dot"></span>AWS SAA In Progress</span>
+          <span class="chip"><span class="chip-dot"></span>Next.js · Supabase</span>
+          <span class="chip"><span class="chip-dot"></span>Python · Node.js</span>
+          <span class="chip"><span class="chip-dot"></span>Kubernetes · DevOps</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- DEPLOY -->
+<section class="sec" id="deploy">
+  <div class="sec-inner">
+    <div class="sec-hd">
+      <span class="sec-label">Deploy to bhasad.org</span>
+      <div class="sec-rule"></div>
+    </div>
+
+    <!-- Domain hijack alert -->
+    <div class="alert-banner" style="margin-bottom:36px">
+      <span class="alert-icon">⚠️</span>
+      <div class="alert-text">
+        <strong>Action required — bhasad.org is currently hijacked.</strong><br>
+        Your domain is serving a third-party gambling site ("IDEBET SI PENDOO"). Your Squarespace DNS is pointing to an unauthorized server. Follow the steps below to reclaim and deploy your real site immediately.
+      </div>
+    </div>
+
+    <div class="deploy-grid">
+      <div class="deploy-card">
+        <div class="deploy-num">01</div>
+        <div class="deploy-title">Download this file</div>
+        <div class="deploy-body">Download the HTML file from the Claude artifact above. Name it <code>index.html</code>. Create a GitHub repo named <code>bhasad-org</code> and push it.</div>
+        <div class="code-block">gh repo create bhasad-org --public
+git add index.html && git commit -m "init"
+git push</div>
+      </div>
+      <div class="deploy-card">
+        <div class="deploy-num">02</div>
+        <div class="deploy-title">Deploy to Vercel</div>
+        <div class="deploy-body">Connect the repo to Vercel. It auto-detects a static HTML project. Deploy takes ~30 seconds. Copy the <code>*.vercel.app</code> URL for DNS testing.</div>
+        <div class="code-block">vercel --prod
+# → https://bhasad-org.vercel.app</div>
+      </div>
+      <div class="deploy-card">
+        <div class="deploy-num">03</div>
+        <div class="deploy-title">Fix DNS in Squarespace</div>
+        <div class="deploy-body">In Squarespace Domains → bhasad.org → DNS Settings. Delete any existing A or CNAME records for @ and www. Add these two records:</div>
+        <div class="code-block">CNAME  @    cname.vercel-dns.com
+CNAME  www  cname.vercel-dns.com</div>
+      </div>
+      <div class="deploy-card">
+        <div class="deploy-num">04</div>
+        <div class="deploy-title">Add domain in Vercel</div>
+        <div class="deploy-body">In Vercel → Project → Settings → Domains, add <code>bhasad.org</code> and <code>www.bhasad.org</code>. Vercel auto-provisions SSL. DNS propagates in 1–48h.</div>
+        <div class="code-block">vercel domains add bhasad.org
+# SSL auto-provisioned via Let's Encrypt</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="gradient-divider"></div>
+
+<footer>
+  <div class="footer-brand">
+    <span class="logo-letters">
+      <span class="ll1">B</span><span class="ll2">H</span><span class="ll3">A</span><span class="ll4">S</span><span class="ll5">A</span><span class="ll6">D</span>
+    </span>
+  </div>
+  <div class="footer-info">© 2026 bhasad.org · Himanshu Sharma · Delhi, India</div>
+  <div class="footer-contact">
+    <a href="mailto:ceo@bhasad.org">ceo@bhasad.org</a>
+  </div>
+</footer>
+
+<script>
+/* ══════════════════════════════════════
+   LOADER
+══════════════════════════════════════ */
+const loader = document.getElementById('loader');
+const loaderBar = document.getElementById('loader-bar');
+const loaderLetters = document.querySelectorAll('.loader-letter');
+
+let loadPct = 0;
+const loadTick = setInterval(() => {
+  loadPct += Math.random() * 18 + 6;
+  if (loadPct >= 100) { loadPct = 100; clearInterval(loadTick); }
+  loaderBar.style.width = loadPct + '%';
+}, 80);
+
+loaderLetters.forEach((l, i) => setTimeout(() => l.classList.add('show'), 120 + i * 80));
+
+setTimeout(() => {
+  loader.classList.add('hide');
+  setTimeout(() => { loader.style.display = 'none'; }, 800);
+}, 1400);
+
+/* ══════════════════════════════════════
+   PARTICLE CANVAS
+══════════════════════════════════════ */
+const canvas = document.getElementById('particle-canvas');
+const ctx = canvas.getContext('2d');
+let W, H, particles = [], mouse = { x: -999, y: -999 };
+const PARTICLE_COUNT = 90;
+const CONNECTION_DIST = 150;
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+const COLORS = ['#7C6EFF','#EC4899','#06B6D4','#10B981','#FFA640'];
+class Particle {
+  constructor() { this.reset(); }
+  reset() {
+    this.x = Math.random() * W;
+    this.y = Math.random() * H;
+    this.vx = (Math.random() - 0.5) * 0.35;
+    this.vy = (Math.random() - 0.5) * 0.35;
+    this.r = Math.random() * 1.6 + 0.5;
+    this.color = COLORS[Math.floor(Math.random() * COLORS.length)];
+    this.opacity = Math.random() * 0.5 + 0.2;
+  }
+  update() {
+    this.x += this.vx; this.y += this.vy;
+    if (this.x < 0 || this.x > W) this.vx *= -1;
+    if (this.y < 0 || this.y > H) this.vy *= -1;
+    // slight mouse repulsion
+    const dx = this.x - mouse.x, dy = this.y - mouse.y;
+    const d = Math.sqrt(dx*dx + dy*dy);
+    if (d < 100) {
+      this.x += (dx / d) * 0.8;
+      this.y += (dy / d) * 0.8;
+    }
+  }
+  draw() {
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+    ctx.fillStyle = this.color;
+    ctx.globalAlpha = this.opacity;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+}
+
+for (let i = 0; i < PARTICLE_COUNT; i++) particles.push(new Particle());
+
+function drawParticles() {
+  ctx.clearRect(0, 0, W, H);
+  for (let i = 0; i < particles.length; i++) {
+    particles[i].update();
+    particles[i].draw();
+    for (let j = i + 1; j < particles.length; j++) {
+      const dx = particles[i].x - particles[j].x;
+      const dy = particles[i].y - particles[j].y;
+      const d = Math.sqrt(dx*dx + dy*dy);
+      if (d < CONNECTION_DIST) {
+        const alpha = (1 - d / CONNECTION_DIST) * 0.12;
+        ctx.beginPath();
+        ctx.moveTo(particles[i].x, particles[i].y);
+        ctx.lineTo(particles[j].x, particles[j].y);
+        ctx.strokeStyle = `rgba(124,110,255,${alpha})`;
+        ctx.lineWidth = 0.8;
+        ctx.stroke();
+      }
+    }
+  }
+  requestAnimationFrame(drawParticles);
+}
+drawParticles();
+
+/* ══════════════════════════════════════
+   CURSOR
+══════════════════════════════════════ */
+const cur = document.getElementById('cursor');
+const ring = document.getElementById('cursor-ring');
+let cx = 0, cy = 0, rx = 0, ry = 0;
+document.addEventListener('mousemove', e => {
+  cx = e.clientX; cy = e.clientY;
+  mouse.x = cx; mouse.y = cy;
+  cur.style.left = cx + 'px'; cur.style.top = cy + 'px';
+});
+(function cursorRingTick() {
+  rx += (cx - rx) * 0.12;
+  ry += (cy - ry) * 0.12;
+  ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+  requestAnimationFrame(cursorRingTick);
+})();
+
+/* ══════════════════════════════════════
+   3D TILT ON VENTURE CARDS
+══════════════════════════════════════ */
+document.querySelectorAll('.venture-card').forEach(card => {
+  card.addEventListener('mousemove', e => {
+    const r = card.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width - 0.5;
+    const y = (e.clientY - r.top) / r.height - 0.5;
+    card.style.transform = `perspective(700px) rotateX(${-y * 8}deg) rotateY(${x * 8}deg) translateZ(8px)`;
+  });
+  card.addEventListener('mouseleave', () => {
+    card.style.transform = 'perspective(700px) rotateX(0) rotateY(0) translateZ(0)';
+  });
+});
+
+/* ══════════════════════════════════════
+   SCROLL REVEAL (staggered by column)
+══════════════════════════════════════ */
+const cards = document.querySelectorAll('.venture-card');
+const deployCards = document.querySelectorAll('.deploy-card');
+const colCount = () => window.innerWidth <= 600 ? 1 : window.innerWidth <= 900 ? 2 : 3;
+
+const revealObs = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (!entry.isIntersecting) return;
+    const el = entry.target;
+    const col = parseInt(el.dataset.col || 0);
+    const delay = col * 90;
+    setTimeout(() => el.classList.add('revealed'), delay);
+    revealObs.unobserve(el);
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+cards.forEach(c => revealObs.observe(c));
+
+const deployObs = new IntersectionObserver(entries => {
+  entries.forEach((entry, i) => {
+    if (!entry.isIntersecting) return;
+    setTimeout(() => entry.target.classList.add('revealed'), i * 100);
+    deployObs.unobserve(entry.target);
+  });
+}, { threshold: 0.1 });
+deployCards.forEach(c => deployObs.observe(c));
+
+/* ══════════════════════════════════════
+   STAT COUNTERS
+══════════════════════════════════════ */
+const statObs = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (!entry.isIntersecting) return;
+    const el = entry.target;
+    const target = +el.dataset.target;
+    const suffix = el.dataset.suffix || '';
+    const dur = 1200;
+    const start = performance.now();
+    const ease = t => 1 - Math.pow(1-t, 3);
+    (function tick(now) {
+      const t = Math.min((now - start) / dur, 1);
+      el.textContent = Math.round(ease(t) * target) + suffix;
+      if (t < 1) requestAnimationFrame(tick);
+    })(start);
+    statObs.unobserve(el);
+  });
+}, { threshold: 0.5 });
+document.querySelectorAll('.stat-n[data-target]').forEach(el => statObs.observe(el));
+</script>
+
